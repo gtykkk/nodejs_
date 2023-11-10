@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="/main.css" rel="stylesheet">
+</head>
+<body class="grey-bg">
+    <%- include('nav.ejs') %>
+    <!-- <%= JSON.stringify(posts) %> --> <!-- object나 array 자료형을 볼 수 있음 -->
+    <div class="white-bg">
+        <% for(let i = 0; i < posts.length; i++) { %>
+            <div class="list-box">
+                <a href="/detail/<%= posts[i]._id %>"><h4><%= posts[i].title %></h4></a>
+                <p><%= posts[i].content %></p>
+            </div>
+        <% } %>
+    </div>
+</body>
+</html>
