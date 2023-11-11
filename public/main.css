@@ -2,6 +2,10 @@ body {
     margin: 0;
 }
 
+a {
+    text-decoration: none;
+}
+
 .nav {
     display: flex;
     padding: 15px;
