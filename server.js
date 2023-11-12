@@ -79,7 +79,6 @@ app.get('/edit/:id', async (요청, 응답) => {
 
 // 글 수정 버튼 클릭 시
 app.put('/change', async (요청, 응답) => {
-    let update = await db.collection('post').findOne({ _id: new ObjectId(요청.params.id) });
     let title = 요청.body.title;
     let content = 요청.body.content;
     let id = 요청.body.id;
@@ -95,6 +94,11 @@ app.put('/change', async (요청, 응답) => {
         console.log(e);
         응답.status(500).send('서버에러남');
     }
+});
+
+app.delete('/delete', async (요청, 응답) => {
+    await db.collection('post').deleteOne( { _id: new ObjectId(요청.query.docid) });
+    응답.send('삭제완료');
 });
 
 app.get('/time', (요청, 응답) => {
