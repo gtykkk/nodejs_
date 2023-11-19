@@ -6,6 +6,10 @@ a {
     text-decoration: none;
 }
 
+button {
+    margin: 3px;
+}
+
 .nav {
     display: flex;
     padding: 15px;

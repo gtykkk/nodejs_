@@ -5,9 +5,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <link href="/main.css" rel="stylesheet">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.2.3/jquery.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
 </head>
 
 <body class="grey-bg">
@@ -37,24 +40,33 @@
                     // 위와 같이도 사용 가능
                     method: 'DELETE',
                 })
-                .then((r) => r.text())
-                .then((r) => { console.log(r) })
-                .then((r) => {
-                    if (r.status == 200) {
-                        return r.json()
-                    } else {
-                        // 서버가 에러코드 전송 시 실행할 코드
-                        alert('에러남')
-                    }
-                }).then((result) => {
-                    // 성공 시 실행할 코드
-                }).catch((error) => {
-                    // 인터넷 문제 등으로 실패 시 실행할 코드
-                    console.log(error)
-                })
+                    .then((r) => r.text())
+                    .then((r) => { console.log(r) })
+                    .then((r) => {
+                        if (r.status == 200) {
+                            return r.json()
+                        } else {
+                            // 서버가 에러코드 전송 시 실행할 코드
+                            alert('에러남')
+                        }
+                    }).then((result) => {
+                        // 성공 시 실행할 코드
+                    }).catch((error) => {
+                        // 인터넷 문제 등으로 실패 시 실행할 코드
+                        console.log(error)
+                    })
             })
             "<% } %>"
         </script>
+        <div class="d-flex justify-content-center">
+            <button type='button' class="btn btn-primary" onclick="location.href='/list/1'">1</button>
+            <button type='button' class="btn btn-primary" onclick="location.href='/list/2'">2</button>
+            <button type='button' class="btn btn-primary" onclick="location.href='/list/3'">3</button>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4"
+            crossorigin="anonymous"></script>
 </body>
 
 </html>

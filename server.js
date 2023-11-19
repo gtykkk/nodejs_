@@ -106,14 +106,20 @@ app.get('/time', (요청, 응답) => {
     응답.render('time.ejs', { time: result });
 });
 
-app.get('/list', async (요청, 응답) => {
-    await db.collection('post').find().toArray();
-});
-
 app.get('/about', (요청, 응답) => {
     응답.sendFile(__dirname + '/about.html');
 });
 
 app.get('/news', (요청, 응답) => {
     // db.collection('post').insertOne({title: '어쩌구저쩌구'});
+});
+
+app.get('/list/:pageNum', async (요청, 응답) => {
+    let result = await db.collection('post').find().skip((요청.params.pageNum - 1) * 5).limit(5).toArray();
+    응답.render('list.ejs', { posts: result });
+});
+
+app.get('/list/next/:pageNum', async (요청, 응답) => {
+    let result = await db.collection('post').find({ _id: {$gt : new ObjectId(요청.params.pageNum) }}).limit(5).toArray();
+    응답.render('list.ejs', { posts: result });
 });
