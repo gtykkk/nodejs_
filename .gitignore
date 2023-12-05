@@ -26,4 +26,5 @@ dist/*
 build/*
 *.log
 .DS_Store
-출처: https://redballs.tistory.com/entry/VSCode-프로젝트-Github-업로드-하기 [즐거운인생:티스토리]
+
+.env
