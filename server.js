@@ -214,5 +214,20 @@ app.get('/mypage', async (요청, 응답) => {
     }
 });
 
+app.get('/search', async (요청, 응답) => {
+    console.log(요청.query.val);
+    // aggregate 사용 시 검색 조건 여러개 설정 가능
+    let 검색조건 = [
+        {
+            $search : {
+                index : 'title',
+                text : { query : 요청.query.val, path : 'title'}
+            },
+        }
+    ]
+    let result = await db.collection('post').aggregate(검색조건).toArray();
+    응답.render('search.ejs', { posts : result });
+});
+
 app.use('/shop', require('./routes/shop.js'));
 app.use('/board/sub', checkLogin, require('./routes/sub.js'));

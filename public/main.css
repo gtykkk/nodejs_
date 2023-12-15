@@ -2,6 +2,20 @@ body {
     margin: 0;
 }
 
+.search {
+    margin-left: 20px;
+    margin-top: 5px;
+    padding: 5px;
+}
+
+.search-send {
+    padding: 6px 10px;
+    background: lightgray;
+    border: none;
+    border-radius: 5px;
+    vertical-align: middle;
+}
+
 a {
     text-decoration: none;
 }
