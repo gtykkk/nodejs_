@@ -9,11 +9,10 @@
 <body class="grey-bg">
     <%- include('nav.ejs') %>
     
-    <form class="form-box" action="/add" method="POST" enctype="multipart/form-data">
-        <h4>글쓰기</h4>
-        <input name="title">
-        <input name="content">
-        <input type="file" name="img1" accept="image/*">
+    <form class="form-box" action="/login" method="POST">
+        <h4>로그인</h4>
+        <input name="username">
+        <input name="password" type="password">
         <button type="submit">전송</button>
     </form>
 </body>
