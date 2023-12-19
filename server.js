@@ -96,8 +96,10 @@ app.use('/', upload.single('img1'), require('./routes/write.js'));
 // 글 리스트
 app.get('/list', time, async (요청, 응답) => {
     let result = await db.collection('post').find().toArray();
-    응답.render('list.ejs', { posts: result });
-})
+    let user = 요청.user._id;
+
+    응답.render('list.ejs', { posts: result, users: user});
+});
 
 // 글 상세보기
 app.get('/detail/:aaaa', async (요청, 응답) => {
@@ -117,14 +119,26 @@ app.get('/detail/:aaaa', async (요청, 응답) => {
 
 app.get('/list/:pageNum', async (요청, 응답) => {
     let result = await db.collection('post').find().skip((요청.params.pageNum - 1) * 5).limit(5).toArray();
-    응답.render('list.ejs', { posts: result });
+    let user = 요청.user._id;
+
+    console.log(result.user, user);
+
+    응답.render('list.ejs', { posts: result, users: user});
 });
 
 // 페이지 개수가 많을 경우에 사용할 수 있는 페이지네이션 방법
 // 장점 : 매우 빠름, 단점 : 페이지네이션 버튼을 다음으로 변경해야함
 app.get('/list/next/:pageNum', async (요청, 응답) => {
     let result = await db.collection('post').find({ _id: { $gt: new ObjectId(요청.params.pageNum) } }).limit(5).toArray();
-    응답.render('list.ejs', { posts: result });
+    let user = 요청.user._id;
+
+    console.log(result, user);
+
+    if(result > 요청.params.pageNum) {
+        응답.render('list.ejs', { posts: result, users: user });
+    } else {
+        응답.send('마지막 페이지');
+    }
 });
 
 // 유저가 n번째 페이지를 자주 보여줘야한다면, _id를 1씩 증가하는 정수를 넣어둔다.
@@ -162,7 +176,7 @@ passport.deserializeUser(async (user, done) => {
 });
 
 app.get('/login', async (요청, 응답) => {
-    console.log(요청.user);
+    console.log(요청.user._id);
     응답.render('login.ejs');
 });
 

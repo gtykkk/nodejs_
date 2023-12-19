@@ -27,7 +27,9 @@ router.post('/add', async (요청, 응답) => {
                 await db.collection('post').insertOne({
                     title: 요청.body.title,
                     content: 요청.body.content,
-                    img: 요청.file.location
+                    img: 요청.file ? 요청.file.location : "",
+                    user: 요청.user._id,
+                    username: 요청.user.username
                 });
                 응답.redirect('/list/1');
             }
@@ -39,13 +41,19 @@ router.post('/add', async (요청, 응답) => {
 });
 
 router.delete('/delete', async (요청, 응답) => {
-    await db.collection('post').deleteOne({ _id: new ObjectId(요청.query.docid) });
+    await db.collection('post').deleteOne({ 
+        _id: new ObjectId(요청.query.docid),
+        user: new ObjectId(요청.user._id)
+     });
     응답.send('삭제완료');
 });
 
 // 글 수정
 router.get('/edit/:id', async (요청, 응답) => {
-    let result = await db.collection('post').findOne({ _id: new ObjectId(요청.params.id) })
+    let result = await db.collection('post').findOne({ 
+        _id: new ObjectId(요청.params.id),
+        user: new ObjectId(요청.user._id)
+    })
     응답.render('edit.ejs', { result: result });
 });
 
@@ -60,7 +68,7 @@ router.put('/change', async (요청, 응답) => {
             응답.send('수정할 제목이나 내용을 입력하세요');
         } else {
             await db.collection('post').updateOne({ _id: new ObjectId(id) }, { $set: { title: title, content: content } });
-            응답.redirect('/list');
+            응답.redirect('/list/1');
         }
     } catch (e) {
         console.log(e);
