@@ -28,7 +28,7 @@ app.use(session({
 }));
 app.use(passport.session());
 
-const { S3Client } = require('@aws-sdk/client-s3')
+const { S3Client, ListBucketInventoryConfigurationsOutputFilterSensitiveLog } = require('@aws-sdk/client-s3')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
 const s3 = new S3Client({
@@ -96,48 +96,67 @@ app.use('/', upload.single('img1'), require('./routes/write.js'));
 // 글 리스트
 app.get('/list', time, async (요청, 응답) => {
     let result = await db.collection('post').find().toArray();
-    let user = 요청.user._id;
-
-    응답.render('list.ejs', { posts: result, users: user});
+    
+    if (요청.user == undefined) {
+        응답.redirect('/login');
+    } else {
+        let user = 요청.user._id;
+        응답.render('list.ejs', { posts: result, users: user });
+    }
 });
 
 // 글 상세보기
 app.get('/detail/:aaaa', async (요청, 응답) => {
     let result = await db.collection('post').findOne({ _id: new ObjectId(요청.params.aaaa) });
+    let result2 = await db.collection('comment').find({ parentId: new ObjectId(요청.params.aaaa) }).toArray();
+
     try {
         if (result == null) {
             응답.status(400).send('존재하지 않는 글 입니다.');
         } else {
-            console.log(요청.params);
-            응답.render('detail.ejs', { result: result });
+            if(result2 == null) {
+                응답.render('detail.ejs', { result: result });
+            } else {
+                응답.render('detail.ejs', { result: result, result2: result2 });
+            }
         }
     } catch (e) {
         console.log(e)
         응답.status(400).send('존재하지 않는 글번호 입니다.');
     }
-})
+});
 
 app.get('/list/:pageNum', async (요청, 응답) => {
-    let result = await db.collection('post').find().skip((요청.params.pageNum - 1) * 5).limit(5).toArray();
-    let user = 요청.user._id;
+    let result = await db.collection('post')
+        .find()
+        .skip((요청.params.pageNum - 1) * 5)
+        .limit(5)
+        .toArray();
 
-    console.log(result.user, user);
-
-    응답.render('list.ejs', { posts: result, users: user});
+    if (요청.user == undefined) {
+        응답.redirect('/login');
+    } else {
+        let user = 요청.user;
+        console.log(typeof result, user);
+        응답.render('list.ejs', { posts: result, user: user });
+    }
 });
 
 // 페이지 개수가 많을 경우에 사용할 수 있는 페이지네이션 방법
 // 장점 : 매우 빠름, 단점 : 페이지네이션 버튼을 다음으로 변경해야함
 app.get('/list/next/:pageNum', async (요청, 응답) => {
     let result = await db.collection('post').find({ _id: { $gt: new ObjectId(요청.params.pageNum) } }).limit(5).toArray();
-    let user = 요청.user._id;
-
-    console.log(result, user);
-
-    if(result > 요청.params.pageNum) {
-        응답.render('list.ejs', { posts: result, users: user });
+    
+    if(요청.user == undefined) {
+        응답.redirect('/login');
     } else {
-        응답.send('마지막 페이지');
+        let user = 요청.user._id;
+
+        if (result > 요청.params.pageNum) {
+            응답.render('list.ejs', { posts: result, users: user });
+        } else {
+            응답.send('마지막 페이지');
+        }
     }
 });
 
@@ -176,7 +195,6 @@ passport.deserializeUser(async (user, done) => {
 });
 
 app.get('/login', async (요청, 응답) => {
-    console.log(요청.user._id);
     응답.render('login.ejs');
 });
 
@@ -233,14 +251,14 @@ app.get('/search', async (요청, 응답) => {
     // aggregate 사용 시 검색 조건 여러개 설정 가능
     let 검색조건 = [
         {
-            $search : {
-                index : 'title',
-                text : { query : 요청.query.val, path : 'title'}
+            $search: {
+                index: 'title',
+                text: { query: 요청.query.val, path: 'title' }
             },
         }
     ]
     let result = await db.collection('post').aggregate(검색조건).toArray();
-    응답.render('search.ejs', { posts : result });
+    응답.render('search.ejs', { posts: result });
 });
 
 app.use('/shop', require('./routes/shop.js'));

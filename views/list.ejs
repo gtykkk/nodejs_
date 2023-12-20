@@ -33,11 +33,10 @@
                         <a href="/detail/<%= posts[i]._id %>">
                             <%= posts[i].title %>
                         </a>
-                        <a href="/edit/<%= posts[i]._id %>">✏</a>
-                        <% if(posts[i].user == users) { %>
-                            <span>같음</span>
+                        <% if(posts[i].user == user._id.toString()) { %>
+                            <a href="/edit/<%= posts[i]._id %>">✏</a>
+                            <span class="delete" data-value="<%= posts[i]._id %>">🗑</span>
                         <% } %>
-                        <span class="delete" data-value="<%= posts[i]._id %>">🗑</span>
                     </h4>
                     <p>
                         <%= posts[i].content %>
@@ -46,30 +45,18 @@
                 <% } %>
         </div>
         <script>
-            "<% for (let i = 0; i < posts.length; i++) { %>"
-            document.querySelectorAll('.delete')["<%= i %>"].addEventListener('click', function (e) {
-                fetch('/delete?docid=<%= posts[i]._id %>', {
-                    // fetch('/delete?docid=' + e.target.dataset.value, {
-                    // 위와 같이도 사용 가능
+            $('.delete').click(function(e) {
+                $.ajax({
                     method: 'DELETE',
+                    url: '/delete?docid=' + e.target.dataset.value,
+                }).done(function(result) {
+                    console.log('성공');
+                    // console.log($(e.target).parents('div').html());
+                    $(e.target).parents('.list-box').fadeOut();
+                }).fail(function(xhr, textStatus, errorThrown) {
+                    console.log(xhr, textStatus, errorThrown);
                 })
-                    .then((r) => r.text())
-                    .then((r) => { console.log(r) })
-                    .then((r) => {
-                        if (r.status == 200) {
-                            return r.json()
-                        } else {
-                            // 서버가 에러코드 전송 시 실행할 코드
-                            alert('에러남')
-                        }
-                    }).then((result) => {
-                        // 성공 시 실행할 코드
-                    }).catch((error) => {
-                        // 인터넷 문제 등으로 실패 시 실행할 코드
-                        console.log(error)
-                    })
-            })
-            "<% } %>"
+            });
         </script>
         <div class="d-flex justify-content-center">
             <button type='button' class="btn btn-primary" onclick="location.href='/list/1'">1</button>

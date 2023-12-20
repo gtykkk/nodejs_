@@ -76,4 +76,15 @@ router.put('/change', async (요청, 응답) => {
     }
 });
 
+// 댓글 작성
+router.post('/comment', async (요청, 응답) => {
+    await db.collection('comment').insertOne({
+        content : 요청.body.content,
+        writerId: new ObjectId(요청.user._id),
+        writer : 요청.user.username,
+        parentId: new ObjectId(요청.body.parentId)
+    });
+
+    응답.redirect('back');
+});
 module.exports = router;
