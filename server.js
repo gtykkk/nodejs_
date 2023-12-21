@@ -28,7 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(passport.initialize());
 app.use(session({
-    secret: 'soqlqjs11!', // 세션의 document id는 암호화해서 유저에게 보내준다
+    secret: process.env.SECRET_KEY, // 세션의 document id는 암호화해서 유저에게 보내준다
     resave: false, // GET/POST 요청마다 세션을 갱신할 것인지
     saveUninitialized: false, // 유저가 로그인을 안해도 세션을 만들 것인지
     cookie: { maxAge: 60 * 60 * 1000 }, // 세션 document 유효기간 변경가능 (1시간)
@@ -77,13 +77,23 @@ function checkBlank(요청, 응답, next) {
     next();
 }
 
+let changeStream;
+
 // db 연결
-let connectDB = require('./database.js')
+let connectDB = require('./database.js');
+const { env } = require('process');
 
 let db;
-connectDB.then((client) => {
+connectDB.then(async (client) => {
     console.log('DB연결성공');
     db = client.db('forum');
+
+    let 조건 = [
+        { $match : { operationType : 'insert'} }
+    ]
+
+    changeStream = await db.collection('post').watch(조건);
+
     server.listen(process.env.PORT, () => {
         console.log('http://localhost:', process.env.PORT, '에서 서버 실행중');
     });
@@ -301,6 +311,26 @@ app.get('/chat/detail/:id', async (요청, 응답) => {
     응답.render('chatDetail.ejs', { result : result, id : id });
 });
 
+
+// Server sent events
+app.get('/stream/list', async (요청, 응답) => {
+    응답.writeHead(200, {
+      "Connection": "keep-alive",
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+    });
+
+    // 1초마다 위 데이터를 전달해줌
+    // setInterval(() => {
+    // 응답.write('event: msg\n');
+    // 응답.write('data: 바보\n\n');
+    // }, 1000);
+
+    changeStream.on('change', (result) => {
+        응답.write('event: msg\n');
+        응답.write(`data: ${JSON.stringify(result.fullDocument)}\n\n`);
+    })
+  });
 // session 확인하기 위한 코드
 io.engine.use(sessionMiddleware);
 
@@ -323,13 +353,13 @@ io.on('connection', (socket) => {
 
     socket.on('message', async (data) => {
 
+        console.log(socket.request);
         console.log(new ObjectId(data.room));
-        console.log(socket.request.session.id);
-        await db.collection('chatMessage').insertOne({
-            parentRoom: new ObjectId(data.room),
-            content: data.msg,
-            who: new ObjectId(socket.request.session.passport.user._id)
-        });
+        // await db.collection('chatMessage').insertOne({
+        //     parentRoom: new ObjectId(data.room),
+        //     content: data.msg,
+        //     who: new ObjectId(socket.request.session.passport.user.id)
+        // });
 
         io.to(data.room).emit('broadcast', data.msg);
     });

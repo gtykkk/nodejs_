@@ -58,6 +58,14 @@
                 })
             });
         </script>
+        <script>
+            let eventSource = new EventSource('/stream/list');
+            eventSource.addEventListener('msg', function(e) {
+                console.log(e.data);
+                let 가져온거 = JSON.parse(e.data);
+                document.querySelector('.white-bg').insertAdjacentHTML('afterbegin', `<div class="list-box"><h4>${가져온거.title}</h4></div>`);
+            });
+        </script>
         <div class="d-flex justify-content-center">
             <button type='button' class="btn btn-primary" onclick="location.href='/list/1'">1</button>
             <button type='button' class="btn btn-primary" onclick="location.href='/list/2'">2</button>
