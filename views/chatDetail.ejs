@@ -26,9 +26,13 @@
     <script>
       const socket = io();
       socket.emit('ask-join', '1');
+      
+      socket.emit('ask-joinr', '<%= id %>');
 
+      // 전송 버튼을 누를 때, 메세지 전송
       document.querySelector('.chat-button').addEventListener('click', function() {
-        socket.emit('message', { msg : '반가워', room : '1' });
+        socket.emit('message', { msg : document.querySelector('.chat-input').value, room : '<%= id %>' });
+        document.querySelector('.chat-input').value = '';
       });
 
       socket.on('name', (data) => {
@@ -36,7 +40,8 @@
       });
 
       socket.on('broadcast', (data) => {
-        console.log(data);
+        document.querySelector('.chat-screen')
+                .insertAdjacentHTML('beforeend', `<div class="chat-box mine"><span>${data}</span></div>`);
       });
     </script>
 </body>
