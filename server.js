@@ -13,6 +13,12 @@ const { Server } = require('socket.io');
 const server = createServer(app);
 const io = new Server(server);
 
+const sessionMiddleware = session({
+    secret : "changeit",
+    resave : true,
+    saveUninitialized : true
+});
+
 require('dotenv').config();
 
 app.use(methodOverride('_method'));
@@ -33,6 +39,7 @@ app.use(session({
     })
 }));
 app.use(passport.session());
+app.use(sessionMiddleware);
 
 const { S3Client, ListBucketInventoryConfigurationsOutputFilterSensitiveLog } = require('@aws-sdk/client-s3')
 const multer = require('multer')
@@ -246,7 +253,7 @@ app.get('/mypage', async (요청, 응답) => {
     console.log(요청.user);
 
     if (요청.user == undefined) {
-        응답.send('로그인 한 회원만 진입 가능합니다.')
+        응답.redirect('/login');
     } else {
         응답.render('mypage.ejs', { username: 요청.user });
     }
@@ -271,7 +278,7 @@ app.get('/chat/request', async (요청, 응답) => {
     await db.collection('chatroom').insertOne({
         member: [요청.user._id, new ObjectId(요청.query.writerId)],
         date: new Date()
-    })
+    });
 
     응답.redirect('/chat/list');
 });
@@ -289,8 +296,13 @@ app.get('/chat/detail/:id', async (요청, 응답) => {
         _id: new ObjectId(요청.params.id)
     });
 
-    응답.render('chatDetail.ejs', { result : result });
+    let id = 요청.params.id;
+
+    응답.render('chatDetail.ejs', { result : result, id : id });
 });
+
+// session 확인하기 위한 코드
+io.engine.use(sessionMiddleware);
 
 io.on('connection', (socket) => {
     // console.log('웹소켓 연결');
@@ -300,11 +312,25 @@ io.on('connection', (socket) => {
         io.emit('name', '김태영');
     });
 
+    // room에 넣기
     socket.on('ask-join', (data) => {
         socket.join(data);
     });
 
-    socket.on('message', (data) => {
+    socket.on('ask-joinr', (data) => {
+        socket.join(data);
+    });
+
+    socket.on('message', async (data) => {
+
+        console.log(new ObjectId(data.room));
+        console.log(socket.request.session.id);
+        await db.collection('chatMessage').insertOne({
+            parentRoom: new ObjectId(data.room),
+            content: data.msg,
+            who: new ObjectId(socket.request.session.passport.user._id)
+        });
+
         io.to(data.room).emit('broadcast', data.msg);
     });
 });
