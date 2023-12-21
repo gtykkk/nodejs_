@@ -7,6 +7,12 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const bcrypt = require('bcrypt');
 const MongoStore = require('connect-mongo');
+
+const { createServer } = require('http');
+const { Server } = require('socket.io');
+const server = createServer(app);
+const io = new Server(server);
+
 require('dotenv').config();
 
 app.use(methodOverride('_method'));
@@ -71,7 +77,7 @@ let db;
 connectDB.then((client) => {
     console.log('DB연결성공');
     db = client.db('forum');
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
         console.log('http://localhost:', process.env.PORT, '에서 서버 실행중');
     });
 }).catch((err) => {
@@ -137,7 +143,7 @@ app.get('/list/:pageNum', async (요청, 응답) => {
         응답.redirect('/login');
     } else {
         let user = 요청.user;
-        console.log(typeof result, user);
+        // console.log(typeof result, user);
         응답.render('list.ejs', { posts: result, user: user });
     }
 });
@@ -260,6 +266,50 @@ app.get('/search', async (요청, 응답) => {
     let result = await db.collection('post').aggregate(검색조건).toArray();
     응답.render('search.ejs', { posts: result });
 });
+
+app.get('/chat/request', async (요청, 응답) => {
+    await db.collection('chatroom').insertOne({
+        member: [요청.user._id, new ObjectId(요청.query.writerId)],
+        date: new Date()
+    })
+
+    응답.redirect('/chat/list');
+});
+
+app.get('/chat/list', async (요청, 응답) => {
+    let result = await db.collection('chatroom').find({
+        member: 요청.user._id
+    }).toArray();
+
+    응답.render('chatList.ejs', { result : result });
+});
+
+app.get('/chat/detail/:id', async (요청, 응답) => {
+    let result = await db.collection('chatroom').find({
+        _id: new ObjectId(요청.params.id)
+    });
+
+    응답.render('chatDetail.ejs', { result : result });
+});
+
+io.on('connection', (socket) => {
+    console.log('웹소켓 연결');
+    // html 데이터 수신하는 방법
+    socket.on('age', (data) => {
+        console.log('유저가 보낸거 : ', data);
+        io.emit('name', '김태영');
+    });
+
+    socket.on('ask-join', (data) => {
+        socket.join(data);
+    });
+
+    socket.on('message', (data) => {
+        io.to(data.room).emit('broadcast', data.msg);
+    });
+});
+
+
 
 app.use('/shop', require('./routes/shop.js'));
 app.use('/board/sub', checkLogin, require('./routes/sub.js'));
