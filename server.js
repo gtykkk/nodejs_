@@ -293,7 +293,7 @@ app.get('/chat/detail/:id', async (요청, 응답) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('웹소켓 연결');
+    // console.log('웹소켓 연결');
     // html 데이터 수신하는 방법
     socket.on('age', (data) => {
         console.log('유저가 보낸거 : ', data);
@@ -308,8 +308,6 @@ io.on('connection', (socket) => {
         io.to(data.room).emit('broadcast', data.msg);
     });
 });
-
-
 
 app.use('/shop', require('./routes/shop.js'));
 app.use('/board/sub', checkLogin, require('./routes/sub.js'));
